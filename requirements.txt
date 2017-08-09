@@ -1,1 +1,1 @@
--e git@github.com:TimDettmers/spodernet.git#egg=spodernet
+-e git://github.com/TimDettmers/spodernet.git#egg=spodernet
