@@ -1,0 +1,1 @@
+-e git@github.com:TimDettmers/spodernet.git#egg=spodernet
