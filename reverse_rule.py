@@ -9,14 +9,15 @@ import sys
 
 if len(sys.argv) > 1:
     dataset_name = sys.argv[1]
+    threshold = float(sys.argv[2])
 else:
     #dataset_name = 'FB15k-237'
     #dataset_name = 'YAGO3-10'
     #dataset_name = 'WN18'
     #dataset_name = 'FB15k'
     dataset_name = 'WN18RR'
+    threshold = 0.99
 
-threshold = 0.99
 print(threshold)
 
 base_path = 'data/{0}/'.format(dataset_name)
@@ -33,6 +34,7 @@ test_cases = {}
 rel_to_tuple = {}
 e1rel2e2 = {}
 existing_triples = set()
+rel2tuple_train = {}
 for p in files:
     test_cases[p] = []
 
@@ -55,8 +57,13 @@ for p in files:
             if rel not in rel_to_tuple:
                 rel_to_tuple[rel] = set()
 
+            if rel not in rel2tuple_train:
+                rel2tuple_train[rel] = set()
+
             rel_to_tuple[rel].add((e1,e2))
             test_cases[p].append([e1, rel, e2])
+            if p == 'train.txt':
+                rel2tuple_train[rel].add((e1, e2))
 
 
 def check_for_reversible_relations(rel_to_tuple, threshold=0.80):
@@ -66,8 +73,8 @@ def check_for_reversible_relations(rel_to_tuple, threshold=0.80):
         if i % 100 == 0:
             print('Processed {0} relations...'.format(i))
         for rel2 in rel_to_tuple:
-            tuples2 = rel_to_tuple[rel2]
-            tuples1 = rel_to_tuple[rel1]
+            tuples2 = rel2tuple_train[rel2]
+            tuples1 = rel2tuple_train[rel1]
             # check if the entire set of (e1, e2) is contained in the set of the 
             # other relation, but in a reversed manner
             # that is ALL (e1, e2) -> (e2, e1) for rel 1 are contained in set entity tuple set of rel2 (and vice versa)
