@@ -10,7 +10,7 @@ import math
 from os.path import join
 import torch.backends.cudnn as cudnn
 
-from training import ranking_and_hits
+from evaluation import ranking_and_hits
 from model import ConvE, DistMult, Complex
 
 from spodernet.preprocessing.pipeline import Pipeline, DatasetStreamer

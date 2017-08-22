@@ -9,7 +9,7 @@ from torch.autograd import Variable
 from sklearn import metrics
 
 #timer = CUDATimer()
-log = Logger('training_{0}.py.txt'.format(datetime.datetime.now()))
+log = Logger('evaluation{0}.py.txt'.format(datetime.datetime.now()))
 
 def ranking_and_hits(model, dev_rank_batcher, vocab, name):
     log.info('')
