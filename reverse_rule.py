@@ -5,6 +5,10 @@ import os
 import numpy as np
 import itertools
 import sys
+import numpy as np
+
+
+rdm = np.random.RandomState(345345)
 
 
 if len(sys.argv) > 1:
@@ -120,7 +124,8 @@ if evaluate:
             elif (e2, e1) in rel2tuples[rel2]: ranks.append(1)
             elif (e1, e2) in rel2tuples[rel2]: ranks.append(1)
             else:
-                ranks.append(np.random.randint(1, num_entities+1))
+                #ranks.append(rdm.randint(1, num_entities+1))
+                ranks.append(num_entities+1)
 
             for e2_neg in e_set:
                 if (e1, rel, e2_neg) in existing_triples: continue
@@ -135,9 +140,12 @@ if evaluate:
                     ranks[-1] += 1
                 if (e2, e1_neg) in rel2tuples[rel2]:
                     ranks[-1] += 1
+
+            #print(ranks[-1], rdm.randint(1, ranks[-1]+1))
+            ranks[-1] = rdm.randint(1, ranks[-1]+1)
         else:
             if rel not in rel2tuples:
-                ranks.append(np.random.randint(1, num_entities+1))
+                ranks.append(rdm.randint(1, num_entities+1))
             elif (e2, e1) in rel2tuples[rel]:
                 ranks.append(1)
 
@@ -150,8 +158,10 @@ if evaluate:
                     if (e1_neg, rel, e2) in existing_triples: continue
                     if (e2, e1_neg) in rel2tuples[rel]:
                         ranks[-1] += 1
+                #print(ranks[-1], rdm.randint(1, ranks[-1]+1))
+                ranks[-1] = rdm.randint(1, ranks[-1]+1)
             else:
-                ranks.append(np.random.randint(1, num_entities+1))
+                ranks.append(rdm.randint(1, num_entities+1))
 
     n = float(len(ranks))
     print(n)

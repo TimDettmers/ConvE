@@ -25,3 +25,11 @@ This is a bit messy, but it works.
 CUDA_VISIBLE_DEVICES=0 python main.py input_drop 0.2 hidden_drop 0.3 feat_drop 0.2 lr 0.003
 ```
 The command above in conjunction with ConvE as a model will yield state-of-the-art results for most link prediction datasets.
+
+For the reverse model, you can run the provided file with the name of the dataset name and a threshold probability:
+
+```
+python reverse_rule.py WN18RR 0.9
+```
+
+To run it on new datasets, either adjust the path structure in the file, or copy your dataset folder into the data folder and make sure your dataset split files have the name `train.txt`, `valid.txt`, and `test.txt` which contain tab separated triples of a knowledge graph.
