@@ -13,6 +13,7 @@ This repo supports Linux and Python installation via Anaconda.
 1. Install [PyTorch](https://github.com/pytorch/pytorch) using [Anaconda](https://www.continuum.io/downloads)
 2. Install the requirements `pip install -r requirements`
 3. Run the preprocessing script for WN18RR, FB15k-237, and YAGO3-10: `sh preprocess.sh`
+4. (Optional) Install spacy English models with `python -m spacy download en`.
 4. You can now run the model
 
 ## Running a model

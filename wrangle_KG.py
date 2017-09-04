@@ -7,7 +7,7 @@ import datetime
 import requests
 import json
 import urllib
-import cPickle as pickle
+import pickle
 import os
 import numpy as np
 import operator
