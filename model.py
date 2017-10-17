@@ -90,12 +90,12 @@ class ConvE(torch.nn.Module):
         self.feature_map_drop = torch.nn.Dropout2d(Config.feature_map_dropout)
         self.loss = torch.nn.BCELoss()
 
-        self.conv1 = torch.nn.Conv2d(1, 8, (3, 3), 1, 0, bias=Config.use_bias)
+        self.conv1 = torch.nn.Conv2d(1, 32, (3, 3), 1, 0, bias=Config.use_bias)
         self.bn0 = torch.nn.BatchNorm2d(1)
-        self.bn1 = torch.nn.BatchNorm2d(8)
+        self.bn1 = torch.nn.BatchNorm2d(32)
         self.bn2 = torch.nn.BatchNorm1d(Config.embedding_dim)
         self.register_parameter('b', Parameter(torch.zeros(num_entities)))
-        self.fc = torch.nn.Linear(2592,Config.embedding_dim)
+        self.fc = torch.nn.Linear(1152,Config.embedding_dim)
         print(num_entities, num_relations)
 
     def init(self):
@@ -103,8 +103,8 @@ class ConvE(torch.nn.Module):
         xavier_normal(self.emb_rel.weight.data)
 
     def forward(self, e1, rel):
-        e1_embedded= self.emb_e(e1).view(Config.batch_size, 1, 10, 20)
-        rel_embedded = self.emb_rel(rel).view(Config.batch_size, 1, 10, 20)
+        e1_embedded= self.emb_e(e1).view(Config.batch_size, 1, 4, 8)
+        rel_embedded = self.emb_rel(rel).view(Config.batch_size, 1, 4, 8)
 
         stacked_inputs = torch.cat([e1_embedded, rel_embedded], 2)
 
@@ -115,6 +115,7 @@ class ConvE(torch.nn.Module):
         x= F.relu(x)
         x = self.feature_map_drop(x)
         x = x.view(Config.batch_size, -1)
+        #print(x.size())
         x = self.fc(x)
         x = self.hidden_drop(x)
         x = self.bn2(x)

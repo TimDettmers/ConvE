@@ -38,12 +38,12 @@ Config.parse_argv(sys.argv)
 Config.cuda = True
 
 Config.hidden_size = 1
-Config.embedding_dim = 200
+Config.embedding_dim = 36
 #Logger.GLOBAL_LOG_LEVEL = LogLevel.DEBUG
 
 
-model_name = 'ConvE_{0}_{1}'.format(Config.input_dropout, Config.dropout)
-do_process = True
+model_name = 'DistMult_{0}_{1}'.format(Config.input_dropout, Config.dropout)
+do_process = False
 epochs = 1000
 Config.batch_size = 128
 load = False
@@ -108,8 +108,8 @@ def main():
 
 
     #model = Complex(vocab['e1'].num_token, vocab['rel'].num_token)
-    #model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
-    model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
+    model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
+    #model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
 
     train_batcher.at_batch_prepared_observers.insert(1,TargetIdx2MultiTarget(num_entities, 'e2_multi1', 'e2_multi1_binary'))
 
@@ -124,7 +124,12 @@ def main():
     if load:
         model_params = torch.load(model_path)
         print(model)
-        print([(key, value.size()) for key, value in model_params.items()])
+        total_param_size = []
+        params = [(key, value.size(), value.numel()) for key, value in model_params.items()]
+        for key, size, count in params:
+            total_param_size.append(count)
+            print(key, size, count)
+        print(np.array(total_param_size).sum())
         model.load_state_dict(model_params)
         model.eval()
         ranking_and_hits(model, test_rank_batcher, vocab, 'test_evaluation')
