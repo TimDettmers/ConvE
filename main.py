@@ -38,11 +38,12 @@ Config.parse_argv(sys.argv)
 Config.cuda = True
 
 Config.hidden_size = 1
-Config.embedding_dim = 36
+Config.embedding_dim = 96
 #Logger.GLOBAL_LOG_LEVEL = LogLevel.DEBUG
 
 
-model_name = 'DistMult_{0}_{1}'.format(Config.input_dropout, Config.dropout)
+#model_name = 'DistMult_{0}_{1}'.format(Config.input_dropout, Config.dropout)
+model_name = 'ConvE_{0}_{1}'.format(Config.input_dropout, Config.dropout)
 do_process = False
 epochs = 1000
 Config.batch_size = 128
@@ -108,8 +109,8 @@ def main():
 
 
     #model = Complex(vocab['e1'].num_token, vocab['rel'].num_token)
-    model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
-    #model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
+    #model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
+    model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
 
     train_batcher.at_batch_prepared_observers.insert(1,TargetIdx2MultiTarget(num_entities, 'e2_multi1', 'e2_multi1_binary'))
 
@@ -137,6 +138,10 @@ def main():
     else:
         model.init()
 
+    total_param_size = []
+    params = [value.numel() for value in model.parameters()]
+    print(params)
+    print(np.sum(params))
 
     opt = torch.optim.Adam(model.parameters(), lr=Config.learning_rate, weight_decay=Config.L2)
     for epoch in range(epochs):
