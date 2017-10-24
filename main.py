@@ -38,19 +38,20 @@ Config.parse_argv(sys.argv)
 Config.cuda = True
 
 Config.hidden_size = 1
-Config.embedding_dim = 96
+Config.embedding_dim = 200
 #Logger.GLOBAL_LOG_LEVEL = LogLevel.DEBUG
 
 
 #model_name = 'DistMult_{0}_{1}'.format(Config.input_dropout, Config.dropout)
 model_name = 'ConvE_{0}_{1}'.format(Config.input_dropout, Config.dropout)
-do_process = False
+do_process = True
 epochs = 1000
 Config.batch_size = 128
 load = False
 #dataset_name = 'YAGO3-10'
 #dataset_name = 'WN18RR'
-dataset_name = 'FB15k-237'
+#dataset_name = 'FB15k-237'
+dataset_name = 'UMLS'
 model_path = 'saved_models/{0}_{1}.model'.format(dataset_name, model_name)
 
 
