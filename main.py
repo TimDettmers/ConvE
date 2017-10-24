@@ -42,6 +42,7 @@ Config.embedding_dim = 200
 #Logger.GLOBAL_LOG_LEVEL = LogLevel.DEBUG
 
 
+#model_name = 'DistMult_{0}_{1}'.format(Config.input_dropout, Config.dropout)
 model_name = 'ConvE_{0}_{1}'.format(Config.input_dropout, Config.dropout)
 do_process = True
 epochs = 1000
@@ -49,7 +50,8 @@ Config.batch_size = 128
 load = False
 #dataset_name = 'YAGO3-10'
 #dataset_name = 'WN18RR'
-dataset_name = 'FB15k-237'
+#dataset_name = 'FB15k-237'
+dataset_name = 'UMLS'
 model_path = 'saved_models/{0}_{1}.model'.format(dataset_name, model_name)
 
 
@@ -124,7 +126,12 @@ def main():
     if load:
         model_params = torch.load(model_path)
         print(model)
-        print([(key, value.size()) for key, value in model_params.items()])
+        total_param_size = []
+        params = [(key, value.size(), value.numel()) for key, value in model_params.items()]
+        for key, size, count in params:
+            total_param_size.append(count)
+            print(key, size, count)
+        print(np.array(total_param_size).sum())
         model.load_state_dict(model_params)
         model.eval()
         ranking_and_hits(model, test_rank_batcher, vocab, 'test_evaluation')
@@ -132,6 +139,10 @@ def main():
     else:
         model.init()
 
+    total_param_size = []
+    params = [value.numel() for value in model.parameters()]
+    print(params)
+    print(np.sum(params))
 
     opt = torch.optim.Adam(model.parameters(), lr=Config.learning_rate, weight_decay=Config.L2)
     for epoch in range(epochs):
