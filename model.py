@@ -103,8 +103,8 @@ class ConvE(torch.nn.Module):
         xavier_normal(self.emb_rel.weight.data)
 
     def forward(self, e1, rel):
-        e1_embedded= self.emb_e(e1).view(Config.batch_size, 1, 6, 16)
-        rel_embedded = self.emb_rel(rel).view(Config.batch_size, 1, 6, 16)
+        e1_embedded= self.emb_e(e1).view(Config.batch_size, 1, 10, 20)
+        rel_embedded = self.emb_rel(rel).view(Config.batch_size, 1, 10, 20)
 
         stacked_inputs = torch.cat([e1_embedded, rel_embedded], 2)
 
