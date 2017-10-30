@@ -49,7 +49,7 @@ def ranking_and_hits(model, dev_rank_batcher, vocab, name):
 
             # save the prediction that is relevant
             target_value1 = pred1[i,e2[i, 0]]
-            target_value2 = pred2[i,e1[i, 0]]
+            #target_value2 = pred2[i,e1[i, 0]]
 
             # zero all known cases (this are not interesting)
             # this corresponds to the filtered setting
@@ -57,24 +57,23 @@ def ranking_and_hits(model, dev_rank_batcher, vocab, name):
             pred2[i][filter2] = 0.0
             # write base the saved values
             pred1[i][e2[i]] = target_value1
-            pred2[i][e1[i]] = target_value2
+            #pred2[i][e1[i]] = target_value2
 
 
         # sort and rank
-        max_values, argsort1 = torch.sort(pred1, 1, descending=True)
-        max_values, argsort2 = torch.sort(pred2, 1, descending=True)
+        pred = torch.cat([pred1, pred2], 1)
+        max_values, argsort = torch.sort(pred, 1, descending=True)
 
-        argsort1 = argsort1.cpu().numpy()
-        argsort2 = argsort2.cpu().numpy()
+        argsort = argsort.cpu().numpy()
         for i in range(Config.batch_size):
             # find the rank of the target entities
-            rank1 = np.where(argsort1[i]==e2[i, 0])[0][0]
-            rank2 = np.where(argsort2[i]==e1[i, 0])[0][0]
+            rank1 = np.where(argsort[i]==e2[i, 0])[0][0]
+            #rank2 = np.where(argsort2[i]==e1[i, 0])[0][0]
             # rank+1, since the lowest rank is rank 1 not rank 0
             ranks.append(rank1+1)
             ranks_left.append(rank1+1)
-            ranks.append(rank2+1)
-            ranks_right.append(rank2+1)
+            #ranks.append(rank2+1)
+            #ranks_right.append(rank2+1)
 
             # this could be done more elegantly, but here you go
             for hits_level in range(10):
@@ -84,13 +83,6 @@ def ranking_and_hits(model, dev_rank_batcher, vocab, name):
                 else:
                     hits[hits_level].append(0.0)
                     hits_left[hits_level].append(0.0)
-
-                if rank2 <= hits_level:
-                    hits[hits_level].append(1.0)
-                    hits_right[hits_level].append(1.0)
-                else:
-                    hits[hits_level].append(0.0)
-                    hits_right[hits_level].append(0.0)
 
         dev_rank_batcher.state.loss = [0]
 

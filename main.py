@@ -51,7 +51,7 @@ load = False
 #dataset_name = 'YAGO3-10'
 #dataset_name = 'WN18RR'
 #dataset_name = 'FB15k-237'
-dataset_name = 'UMLS'
+dataset_name = 'umls'
 model_path = 'saved_models/{0}_{1}.model'.format(dataset_name, model_name)
 
 
@@ -110,8 +110,8 @@ def main():
 
 
     #model = Complex(vocab['e1'].num_token, vocab['rel'].num_token)
-    #model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
-    model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
+    model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
+    #model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
 
     train_batcher.at_batch_prepared_observers.insert(1,TargetIdx2MultiTarget(num_entities, 'e2_multi1', 'e2_multi1_binary'))
 

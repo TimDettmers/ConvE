@@ -55,7 +55,7 @@ for p in files:
 for p in files:
     with open(join(base_path, p)) as f:
         for i, line in enumerate(f):
-            e1, rel, e2 = line.split('\t')
+            e1, rel, e2 = line.strip().split('\t')
             e1 = e1.strip()
             e2 = e2.strip()
             rel = rel.strip()
@@ -63,29 +63,29 @@ for p in files:
             if (e1 , rel) not in d_egraph:
                 d_egraph[(e1, rel)] = set()
 
-            if (e2,  rel) not in d_egraph:
-                d_egraph[(e2, rel)] = set()
+#            if (e2,  rel) not in d_egraph:
+#                d_egraph[(e2, rel)] = set()
 
             if (e1,  rel) not in d_egraph_sets[p]:
                 d_egraph_sets[p][(e1, rel)] = set()
-            if (e2, rel) not in d_egraph_sets[p]:
-                d_egraph_sets[p][(e2, rel)] = set()
+            #if (e2, rel) not in d_egraph_sets[p]:
+                #d_egraph_sets[p][(e2, rel)] = set()
 
             if e1+rel not in e_rel_direction:
                 e_rel_direction[e1+rel] = 'left'
             else:
                 e_rel_direction[e1+rel] = 'bidirectional'
 
-            if e2+rel not in e_rel_direction:
-                e_rel_direction[e2+rel] = 'right'
-            else:
-                e_rel_direction[e2+rel] == 'bidirectional'
-
+#            if e2+rel not in e_rel_direction:
+#                e_rel_direction[e2+rel] = 'right'
+#            else:
+#                e_rel_direction[e2+rel] == 'bidirectional'
+#
             d_egraph[(e1, rel)].add(e2)
-            d_egraph[(e2, rel)].add(e1)
+            #d_egraph[(e2, rel)].add(e1)
             test_cases[p].append([e1, rel, e2])
             d_egraph_sets[p][(e1, rel)].add(e2)
-            d_egraph_sets[p][(e2, rel)].add(e1)
+            #d_egraph_sets[p][(e2, rel)].add(e1)
 
 
 #print('largest entities relations:')
