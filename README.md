@@ -97,11 +97,14 @@ lr_decay = learning_rate_decay
 lr = learning_rate
 label_smoothing = label_smoothing_epsilon 
 ```
+The parameters with the equal sign are equivalent and short-forms of each other. 
+
 To reproduce most of the results in the ConvE paper, you can use command below:
 
 ```
-CUDA_VISIBLE_DEVICES=0 python main.py model ConvE input_drop 0.2 hidden_drop 0.3 \ 
-                                      feat_drop 0.2 lr 0.003 dataset DATASET_NAME
+CUDA_VISIBLE_DEVICES=0 python main.py model ConvE input_drop 0.2 hidden_drop 0.3 \
+                                      feat_drop 0.2 lr 0.003 lr_decay 0.995 \
+                                      dataset DATASET_NAME
 ```
 For the reverse model, you can run the provided file with the name of the dataset name and a threshold probability:
 
@@ -113,9 +116,9 @@ python reverse_rule.py WN18RR 0.9
 
 To run it on a new datasets, copy your dataset folder into the data folder and make sure your dataset split files have the name `train.txt`, `valid.txt`, and `test.txt` which contain tab separated triples of a knowledge graph. Then execute `python wrangle_KG.py FOLDER_NAME`, afterwards, you can use the folder name of your dataset in the dataset parameter.
 
-### Adding new models
+### Adding your own model
 
-A barebone model `MyModel` can be found in the `model.py` file. You can easily extend this to create your own link-prediction model.
+You can easily write your own knowledge graph model by extending the barebone model `MyModel` that can be found in the `model.py` file.
 
 ### Quirks
 
