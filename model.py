@@ -95,7 +95,7 @@ class ConvE(torch.nn.Module):
         self.bn1 = torch.nn.BatchNorm2d(32)
         self.bn2 = torch.nn.BatchNorm1d(Config.embedding_dim)
         self.register_parameter('b', Parameter(torch.zeros(num_entities)))
-        self.fc = torch.nn.Linear(4480,Config.embedding_dim)
+        self.fc = torch.nn.Linear(10368,Config.embedding_dim)
         print(num_entities, num_relations)
 
     def init(self):
@@ -126,3 +126,31 @@ class ConvE(torch.nn.Module):
 
         return pred
 
+
+# Add your own model here
+
+class MyModel(torch.nn.Module):
+    def __init__(self, num_entities, num_relations):
+        super(DistMult, self).__init__()
+        self.emb_e = torch.nn.Embedding(num_entities, Config.embedding_dim, padding_idx=0)
+        self.emb_rel = torch.nn.Embedding(num_relations, Config.embedding_dim, padding_idx=0)
+        self.inp_drop = torch.nn.Dropout(Config.input_dropout)
+        self.loss = torch.nn.BCELoss()
+
+    def init(self):
+        xavier_normal(self.emb_e.weight.data)
+        xavier_normal(self.emb_rel.weight.data)
+
+    def forward(self, e1, rel):
+        e1_embedded= self.emb_e(e1)
+        rel_embedded= self.emb_rel(rel)
+
+        # Add your model function here
+        # The model function should operate on the embeddings e1 and rel
+        # and output scores for all entities (you will need a projection layer
+        # with output size num_relations (from constructor above)
+
+        # generate output scores here
+        prediction = F.sigmoid(output)
+
+        return prediction

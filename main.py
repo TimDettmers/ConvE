@@ -36,23 +36,18 @@ Config.backend = Backends.TORCH
 Config.parse_argv(sys.argv)
 
 Config.cuda = True
-
-Config.hidden_size = 1
 Config.embedding_dim = 200
 #Logger.GLOBAL_LOG_LEVEL = LogLevel.DEBUG
 
 
 #model_name = 'DistMult_{0}_{1}'.format(Config.input_dropout, Config.dropout)
-model_name = 'ConvE_{0}_{1}'.format(Config.input_dropout, Config.dropout)
+model_name = '{2}_{0}_{1}'.format(Config.input_dropout, Config.dropout, Config.model_name)
 do_process = True
 epochs = 1000
-Config.batch_size = 128
 load = False
-#dataset_name = 'YAGO3-10'
-#dataset_name = 'WN18RR'
-#dataset_name = 'FB15k-237'
-dataset_name = 'UMLS'
-model_path = 'saved_models/{0}_{1}.model'.format(dataset_name, model_name)
+if Config.dataset is None:
+    Config.dataset = 'FB15k-237'
+model_path = 'saved_models/{0}_{1}.model'.format(Config.dataset, model_name)
 
 
 ''' Preprocess knowledge graph using spodernet. '''
@@ -75,7 +70,7 @@ def preprocess(dataset_name, delete_data=False):
 
     # process full vocabulary and save it to disk
     d.set_path(full_path)
-    p = Pipeline(dataset_name, delete_data, keys=input_keys, skip_transformation=True)
+    p = Pipeline(Config.dataset, delete_data, keys=input_keys, skip_transformation=True)
     p.add_sent_processor(ToLower())
     p.add_sent_processor(CustomTokenizer(lambda x: x.split(' ')),keys=['e2_multi1', 'e2_multi2'])
     p.add_token_processor(AddToVocab())
@@ -96,22 +91,30 @@ def preprocess(dataset_name, delete_data=False):
 
 
 def main():
-    if do_process: preprocess(dataset_name, delete_data=True)
+    if do_process: preprocess(Config.dataset, delete_data=True)
     input_keys = ['e1', 'rel', 'e2', 'e2_multi1', 'e2_multi2']
-    p = Pipeline(dataset_name, keys=input_keys)
+    p = Pipeline(Config.dataset, keys=input_keys)
     p.load_vocabs()
     vocab = p.state['vocab']
 
     num_entities = vocab['e1'].num_token
 
-    train_batcher = StreamBatcher(dataset_name, 'train', Config.batch_size, randomize=True, keys=input_keys)
-    dev_rank_batcher = StreamBatcher(dataset_name, 'dev_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys, is_volatile=True)
-    test_rank_batcher = StreamBatcher(dataset_name, 'test_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys, is_volatile=True)
+    train_batcher = StreamBatcher(Config.dataset, 'train', Config.batch_size, randomize=True, keys=input_keys)
+    dev_rank_batcher = StreamBatcher(Config.dataset, 'dev_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys, is_volatile=True)
+    test_rank_batcher = StreamBatcher(Config.dataset, 'test_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys, is_volatile=True)
 
 
-    #model = Complex(vocab['e1'].num_token, vocab['rel'].num_token)
-    #model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
-    model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
+    if Config.model_name is None:
+        model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
+    elif Config.model_name == 'ConvE':
+        model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
+    elif Config.model_name == 'DistMult':
+        model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
+    elif Config.model_name == 'ComplEx':
+        model = Complex(vocab['e1'].num_token, vocab['rel'].num_token)
+    else:
+        log.info('Unknown model: {0}', Config.model_name)
+        raise Exception("Unknown model!")
 
     train_batcher.at_batch_prepared_observers.insert(1,TargetIdx2MultiTarget(num_entities, 'e2_multi1', 'e2_multi1_binary'))
 
