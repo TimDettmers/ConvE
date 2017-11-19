@@ -42,7 +42,6 @@ Config.embedding_dim = 200
 
 #model_name = 'DistMult_{0}_{1}'.format(Config.input_dropout, Config.dropout)
 model_name = '{2}_{0}_{1}'.format(Config.input_dropout, Config.dropout, Config.model_name)
-do_process = True
 epochs = 1000
 load = False
 if Config.dataset is None:
@@ -91,7 +90,7 @@ def preprocess(dataset_name, delete_data=False):
 
 
 def main():
-    if do_process: preprocess(Config.dataset, delete_data=True)
+    if Config.process: preprocess(Config.dataset, delete_data=True)
     input_keys = ['e1', 'rel', 'e2', 'e2_multi1', 'e2_multi2']
     p = Pipeline(Config.dataset, keys=input_keys)
     p.load_vocabs()
