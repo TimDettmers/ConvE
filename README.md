@@ -130,7 +130,11 @@ There are some quirks of this framework.
 
 It has been noted that [#6](/../../issues/6) WN18RR does contain 212 entities in the test set that do not appear in the training set. About 6.7% of the test set is affected. This means that most models will find it impossible to make any reasonable predictions for these entities. This will make WN18RR appear more difficult than it really is, but it should not affect the usefulness of the dataset. If all researchers compared to the same datasets the scores will still be comparable.
 
-### Citation
+## Logs
+
+Some log files of the original research are included in the repo (logs.tar.gz). These log files are mostly unstructured in names and might be created from checkpoints so that it is difficult to comprehend them. Nevertheless, it might help to replicate the results or study the behavior of the training under certain conditions and thus I included them here.
+
+## Citation
 
 If you found this codebase or our work useful please cite us:
 ```
