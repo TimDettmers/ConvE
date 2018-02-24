@@ -120,8 +120,7 @@ if evaluate:
         if i % 1000 == 0: print(i)
         if rel in rel2reversal_rel:
             rel2 = rel2reversal_rel[rel]
-            if (e2, e1) in rel2tuples[rel]: ranks.append(1)
-            elif (e2, e1) in rel2tuples[rel2]: ranks.append(1)
+            if (e2, e1) in rel2tuples[rel2]: ranks.append(1)
             elif (e1, e2) in rel2tuples[rel2]: ranks.append(1)
             else:
                 #ranks.append(rdm.randint(1, num_entities+1))
