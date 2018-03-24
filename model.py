@@ -31,10 +31,10 @@ class Complex(torch.nn.Module):
 
     def forward(self, e1, rel):
 
-        e1_embedded_real = self.inp_drop(self.emb_e_real(e1)).view(Config.batch_size, -1)
-        rel_embedded_real = self.inp_drop(self.emb_rel_real(rel)).view(Config.batch_size, -1)
-        e1_embedded_img = self.inp_drop(self.emb_e_img(e1)).view(Config.batch_size, -1)
-        rel_embedded_img = self.inp_drop(self.emb_rel_img(rel)).view(Config.batch_size, -1)
+        e1_embedded_real = self.inp_drop(self.emb_e_real(e1)).squeeze()
+        rel_embedded_real = self.inp_drop(self.emb_rel_real(rel)).squeeze()
+        e1_embedded_img = self.inp_drop(self.emb_e_img(e1)).squeeze()
+        rel_embedded_img = self.inp_drop(self.emb_rel_img(rel)).squeeze()
 
         e1_embedded_real = self.inp_drop(e1_embedded_real)
         rel_embedded_real = self.inp_drop(rel_embedded_real)
@@ -67,8 +67,8 @@ class DistMult(torch.nn.Module):
     def forward(self, e1, rel):
         e1_embedded= self.emb_e(e1)
         rel_embedded= self.emb_rel(rel)
-        e1_embedded = e1_embedded.view(-1, Config.embedding_dim)
-        rel_embedded = rel_embedded.view(-1, Config.embedding_dim)
+        e1_embedded = e1_embedded.squeeze()
+        rel_embedded = rel_embedded.squeeze()
 
         e1_embedded = self.inp_drop(e1_embedded)
         rel_embedded = self.inp_drop(rel_embedded)
@@ -103,8 +103,8 @@ class ConvE(torch.nn.Module):
         xavier_normal(self.emb_rel.weight.data)
 
     def forward(self, e1, rel):
-        e1_embedded= self.emb_e(e1).view(Config.batch_size, 1, 10, 20)
-        rel_embedded = self.emb_rel(rel).view(Config.batch_size, 1, 10, 20)
+        e1_embedded= self.emb_e(e1).view(-1, 1, 10, 20)
+        rel_embedded = self.emb_rel(rel).view(-1, 1, 10, 20)
 
         stacked_inputs = torch.cat([e1_embedded, rel_embedded], 2)
 
