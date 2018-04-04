@@ -4,7 +4,7 @@ Convolutional 2D Knowledge Graph Embeddings resources.
 Paper: [2D Convolutional Graph Embeddings](https://arxiv.org/abs/1707.01476)
 
 Used in the paper, but *do not use these datasets for your research*:
-[FB15k and WN18](https://everest.hds.utc.fr/doku.php?id=en:transe)
+[FB15k and WN18](https://everest.hds.utc.fr/doku.php?id=en:transe). Please also note that the Kinship and Nations datasets have a high number of inverse relationships which makes them unsuitable for research. Nations has +95% inverse relationships and Kinship about 48%.
 
 ## ConvE key facts
 
