@@ -19,8 +19,8 @@ else:
     #dataset_name = 'YAGO3-10'
     #dataset_name = 'WN18'
     #dataset_name = 'FB15k'
-    dataset_name = 'WN18RR'
-    threshold = 0.99
+    dataset_name = 'WN18'
+    threshold = 0.8
 
 print(threshold)
 
@@ -118,50 +118,39 @@ if evaluate:
     ranks = []
     for i, (e1, rel, e2) in enumerate(test_cases['test.txt']):
         if i % 1000 == 0: print(i)
-        if rel in rel2reversal_rel:
-            rel2 = rel2reversal_rel[rel]
-            if (e2, e1) in rel2tuples[rel2]: ranks.append(1)
-            elif (e1, e2) in rel2tuples[rel2]: ranks.append(1)
-            else:
-                #ranks.append(rdm.randint(1, num_entities+1))
-                ranks.append(num_entities+1)
-
+        ranks.append(0)
+        ranks.append(0)
+        if (e1, e2) in rel2tuples[rel]:
+            ranks[-1] += 1
+            ranks[-2] += 1
             for e2_neg in e_set:
                 if (e1, rel, e2_neg) in existing_triples: continue
                 if (e1, e2_neg) in rel2tuples[rel]:
                     ranks[-1] += 1
-                if (e2_neg, e1) in rel2tuples[rel2]:
-                    ranks[-1] += 1
 
             for e1_neg in e_set:
                 if (e1_neg, rel, e2) in existing_triples: continue
-                if (e2, e1_neg) in rel2tuples[rel]:
-                    ranks[-1] += 1
-                if (e2, e1_neg) in rel2tuples[rel2]:
-                    ranks[-1] += 1
-
-            #print(ranks[-1], rdm.randint(1, ranks[-1]+1))
+                if (e1_neg, e2) in rel2tuples[rel]:
+                    ranks[-2] += 1
             ranks[-1] = rdm.randint(1, ranks[-1]+1)
+            ranks[-2] = rdm.randint(1, ranks[-2]+1)
         else:
-            if rel not in rel2tuples:
-                ranks.append(rdm.randint(1, num_entities+1))
-            elif (e2, e1) in rel2tuples[rel]:
-                ranks.append(1)
-
-                for e2_neg in e_set:
-                    if (e1, rel, e2_neg) in existing_triples: continue
-                    if (e1, e2_neg) in rel2tuples[rel]:
-                        ranks[-1] += 1
-
-                for e1_neg in e_set:
-                    if (e1_neg, rel, e2) in existing_triples: continue
-                    if (e2, e1_neg) in rel2tuples[rel]:
-                        ranks[-1] += 1
-                #print(ranks[-1], rdm.randint(1, ranks[-1]+1))
-                ranks[-1] = rdm.randint(1, ranks[-1]+1)
-            else:
-                ranks.append(rdm.randint(1, num_entities+1))
-
+            existing_entities1=0
+            existing_entities2=0
+            for e2_neg in e_set:
+                if (e1, rel, e2_neg) in existing_triples:
+                    existing_entities1+=1
+                    continue
+                if (e1, e2_neg) in rel2tuples[rel]:
+                    ranks[-1] += 1
+            for e1_neg in e_set:
+                if (e1_neg, rel, e2) in existing_triples:
+                    existing_entities2+=1
+                    continue
+                if (e1_neg, e2) in rel2tuples[rel]:
+                    ranks[-2] += 1
+            ranks[-1] = rdm.randint(1,num_entities+1-existing_entities1)
+            ranks[-2] = rdm.randint(1,num_entities+1-existing_entities2)
     n = float(len(ranks))
     print(n)
     ranks = np.array(ranks)
