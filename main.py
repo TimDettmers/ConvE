@@ -59,10 +59,11 @@ def preprocess(dataset_name, delete_data=False):
     keys2keys = {}
     keys2keys['e1'] = 'e1' # entities
     keys2keys['rel'] = 'rel' # relations
+    keys2keys['rel_eval'] = 'rel' # relations
     keys2keys['e2'] = 'e1' # entities
     keys2keys['e2_multi1'] = 'e1' # entity
     keys2keys['e2_multi2'] = 'e1' # entity
-    input_keys = ['e1', 'rel', 'e2', 'e2_multi1', 'e2_multi2']
+    input_keys = ['e1', 'rel', 'rel_eval', 'e2', 'e2_multi1', 'e2_multi2']
     d = DatasetStreamer(input_keys)
     d.add_stream_processor(JsonLoaderProcessors())
     d.add_stream_processor(DictKey2ListMapper(input_keys))
@@ -84,14 +85,14 @@ def preprocess(dataset_name, delete_data=False):
         p.clear_processors()
         p.add_sent_processor(ToLower())
         p.add_sent_processor(CustomTokenizer(lambda x: x.split(' ')),keys=['e2_multi1', 'e2_multi2'])
-        p.add_post_processor(ConvertTokenToIdx(keys2keys=keys2keys), keys=['e1', 'rel', 'e2', 'e2_multi1', 'e2_multi2'])
+        p.add_post_processor(ConvertTokenToIdx(keys2keys=keys2keys), keys=['e1', 'rel', 'rel_eval', 'e2', 'e2_multi1', 'e2_multi2'])
         p.add_post_processor(StreamToHDF5(name, samples_per_file=1000, keys=input_keys))
         p.execute(d)
 
 
 def main():
     if Config.process: preprocess(Config.dataset, delete_data=True)
-    input_keys = ['e1', 'rel', 'e2', 'e2_multi1', 'e2_multi2']
+    input_keys = ['e1', 'rel', 'rel_eval', 'e2', 'e2_multi1', 'e2_multi2']
     p = Pipeline(Config.dataset, keys=input_keys)
     p.load_vocabs()
     vocab = p.state['vocab']

@@ -35,10 +35,11 @@ def ranking_and_hits(model, dev_rank_batcher, vocab, name):
         e1 = str2var['e1']
         e2 = str2var['e2']
         rel = str2var['rel']
+        rel_reverse = str2var['rel_eval']
         e2_multi1 = str2var['e2_multi1'].float()
         e2_multi2 = str2var['e2_multi2'].float()
         pred1 = model.forward(e1, rel)
-        pred2 = model.forward(e2, rel)
+        pred2 = model.forward(e2, rel_reverse)
         pred1, pred2 = pred1.data, pred2.data
         e1, e2 = e1.data, e2.data
         e2_multi1, e2_multi2 = e2_multi1.data, e2_multi2.data

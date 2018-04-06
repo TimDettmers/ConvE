@@ -35,21 +35,12 @@ for p in files:
         data = f.readlines() + data
 
 
-def convert_mid(e):
-    if e in mid2data:
-        if 'name' in mid2data[e]:
-            return mid2data[e]['name']
-    return e
-
-
-egraph = {}
-d_egraph = {}
-d_egraph_sets = {}
+label_graph = {}
+train_graph = {}
 test_cases = {}
-e_rel_direction ={}
 for p in files:
     test_cases[p] = []
-    d_egraph_sets[p] = {}
+    train_graph[p] = {}
 
 
 for p in files:
@@ -59,78 +50,92 @@ for p in files:
             e1 = e1.strip()
             e2 = e2.strip()
             rel = rel.strip()
+            rel_reverse = rel+ '_reverse'
 
-            if (e1 , rel) not in d_egraph:
-                d_egraph[(e1, rel)] = set()
+            # data
+            # (Mike, fatherOf, John)
+            # (John, fatherOf, Tom)
 
-            if (e2,  rel) not in d_egraph:
-                d_egraph[(e2, rel)] = set()
+            if (e1 , rel) not in label_graph:
+                label_graph[(e1, rel)] = set()
 
-            if (e1,  rel) not in d_egraph_sets[p]:
-                d_egraph_sets[p][(e1, rel)] = set()
-            if (e2, rel) not in d_egraph_sets[p]:
-                d_egraph_sets[p][(e2, rel)] = set()
+            if (e2,  rel_reverse) not in label_graph:
+                label_graph[(e2, rel_reverse)] = set()
 
-            if e1+rel not in e_rel_direction:
-                e_rel_direction[e1+rel] = 'left'
-            else:
-                e_rel_direction[e1+rel] = 'bidirectional'
+            if (e1,  rel) not in train_graph[p]:
+                train_graph[p][(e1, rel)] = set()
+            if (e2, rel_reverse) not in train_graph[p]:
+                train_graph[p][(e2, rel_reverse)] = set()
 
-            if e2+rel not in e_rel_direction:
-                e_rel_direction[e2+rel] = 'right'
-            else:
-                e_rel_direction[e2+rel] == 'bidirectional'
+            # labels
+            # (Mike, fatherOf, John)
+            # (John, fatherOf, Tom)
+            # (John, fatherOf_reverse, Mike)
+            # (Tom, fatherOf_reverse, Mike)
+            label_graph[(e1, rel)].add(e2)
 
-            d_egraph[(e1, rel)].add(e2)
-            d_egraph[(e2, rel)].add(e1)
+            label_graph[(e2, rel_reverse)].add(e1)
+
+            # test cases
+            # (Mike, fatherOf, John)
+            # (John, fatherOf, Tom)
             test_cases[p].append([e1, rel, e2])
-            d_egraph_sets[p][(e1, rel)].add(e2)
-            d_egraph_sets[p][(e2, rel)].add(e1)
+
+            # data
+            # (Mike, fatherOf, John)
+            # (John, fatherOf, Tom)
+            # (John, fatherOf_reverse, Mike)
+            # (Tom, fatherOf_reverse, John)
+            train_graph[p][(e1, rel)].add(e2)
+            train_graph[p][(e2, rel_reverse)].add(e1)
 
 
-#print('largest entities relations:')
-#for i in range(10):
-#    print(sorted_x[i])
 
-def write_e1rel_graph(cases, graph, path):
+def write_training_graph(cases, graph, path):
     with open(path, 'w') as f:
         n = len(graph)
         for i, key in enumerate(graph):
             e1, rel = key
-            entities = list(graph[key])
-            direction = e_rel_direction[e1+rel]
+            # (Mike, fatherOf, John)
+            # (John, fatherOf, Tom)
+            # (John, fatherOf_reverse, Mike)
+            # (Tom, fatherOf_reverse, John)
 
-            entities1 = " ".join(entities)
+            # (John, fatherOf) -> Tom
+            # (John, fatherOf_reverse, Mike) 
+            entities1 = " ".join(list(graph[key]))
 
             data_point = {}
             data_point['e1'] = e1
-            data_point['e2'] = str(rdm.choice(entities))
+            data_point['e2'] = 'None'
             data_point['rel'] = rel
-            data_point['direction1'] = direction
-            data_point['direction2'] = 'none'
+            data_point['rel_eval'] = 'None'
             data_point['e2_multi1'] =  entities1
             data_point['e2_multi2'] = "None"
 
             f.write(json.dumps(data_point)  + '\n')
 
-def write_e1rel_ranking_graph(cases, graph, path):
+def write_evaluation_graph(cases, graph, path):
     with open(path, 'w') as f:
         n = len(cases)
+        n1 = 0
+        n2 = 0
         for i, (e1, rel, e2) in enumerate(cases):
-            entities1 = list(graph[(e1, rel)])
-            entities2 = list(graph[(e2, rel)])
-            direction1 = e_rel_direction[e1+rel]
-            direction2 = e_rel_direction[e2+rel]
+            # (Mike, fatherOf) -> John
+            # (John, fatherOf, Tom)
+            rel_reverse = rel+'_reverse'
+            entities1 = " ".join(list(graph[(e1, rel)]))
+            entities2 = " ".join(list(graph[(e2, rel_reverse)]))
 
-            entities1 = " ".join(entities1)
-            entities2 = " ".join(entities2)
+            n1 += len(entities1.split(' '))
+            n2 += len(entities2.split(' '))
+
 
             data_point = {}
             data_point['e1'] = e1
             data_point['e2'] = e2
             data_point['rel'] = rel
-            data_point['direction1'] = direction1
-            data_point['direction2'] = direction2
+            data_point['rel_eval'] = rel_reverse
             data_point['e2_multi1'] = entities1
             data_point['e2_multi2'] = entities2
 
@@ -138,7 +143,7 @@ def write_e1rel_ranking_graph(cases, graph, path):
 
 
 all_cases = test_cases['train.txt'] + test_cases['valid.txt'] + test_cases['test.txt']
-write_e1rel_graph(test_cases['train.txt'], d_egraph_sets['train.txt'], 'data/{0}/e1rel_to_e2_train.json'.format(dataset_name))
-write_e1rel_ranking_graph(test_cases['valid.txt'], d_egraph, join('data/{0}/e1rel_to_e2_ranking_dev.json'.format(dataset_name)))
-write_e1rel_ranking_graph(test_cases['test.txt'], d_egraph, 'data/{0}/e1rel_to_e2_ranking_test.json'.format(dataset_name))
-write_e1rel_graph(all_cases, d_egraph, 'data/{0}/e1rel_to_e2_full.json'.format(dataset_name))
+write_training_graph(test_cases['train.txt'], train_graph['train.txt'], 'data/{0}/e1rel_to_e2_train.json'.format(dataset_name))
+write_evaluation_graph(test_cases['valid.txt'], label_graph, join('data/{0}/e1rel_to_e2_ranking_dev.json'.format(dataset_name)))
+write_evaluation_graph(test_cases['test.txt'], label_graph, 'data/{0}/e1rel_to_e2_ranking_test.json'.format(dataset_name))
+write_training_graph(all_cases, label_graph, 'data/{0}/e1rel_to_e2_full.json'.format(dataset_name))
