@@ -23,9 +23,6 @@ def ranking_and_hits(model, dev_rank_batcher, vocab, name):
     ranks = []
     ranks_left = []
     ranks_right = []
-    mrr_left = []
-    mrr_right = []
-    rel2ranks = {}
     for i in range(10):
         hits_left.append([])
         hits_right.append([])
@@ -48,10 +45,10 @@ def ranking_and_hits(model, dev_rank_batcher, vocab, name):
             filter1 = e2_multi1[i].long()
             filter2 = e2_multi2[i].long()
 
+            num = e1[i, 0].item()
             # save the prediction that is relevant
-            target_value1 = pred1[i,e2[i, 0]]
-            target_value2 = pred2[i,e1[i, 0]]
-
+            target_value1 = pred1[i,e2[i, 0].item()].item()
+            target_value2 = pred2[i,e1[i, 0].item()].item()
             # zero all known cases (this are not interesting)
             # this corresponds to the filtered setting
             pred1[i][filter1] = 0.0
