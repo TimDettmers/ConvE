@@ -43,7 +43,7 @@ ConvE with 8 times less parameters is still more powerful than DistMult. Relatio
 
 This repo supports Linux and Python installation via Anaconda. 
 
-1. Install [PyTorch](https://github.com/pytorch/pytorch) using [Anaconda](https://www.continuum.io/downloads)
+1. Install [PyTorch](https://github.com/pytorch/pytorch) using [Anaconda](https://www.continuum.io/downloads). If you compiled PyTorch from source, please checkout the [v0.5 branch](https://github.com/TimDettmers/ConvE/tree/pytorch_v0.5): `git checkout pytorch_0.5`
 2. Install the requirements `pip install -r requirements`
 3. Download the default English model used by [spaCy](https://github.com/explosion/spaCy), which is installed in the previous step `python -m spacy download en`
 4. Run the preprocessing script for WN18RR, FB15k-237, YAGO3-10, UMLS, Kinship, and Nations: `sh preprocess.sh`

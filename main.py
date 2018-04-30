@@ -100,8 +100,8 @@ def main():
     num_entities = vocab['e1'].num_token
 
     train_batcher = StreamBatcher(Config.dataset, 'train', Config.batch_size, randomize=True, keys=input_keys)
-    dev_rank_batcher = StreamBatcher(Config.dataset, 'dev_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys, is_volatile=True)
-    test_rank_batcher = StreamBatcher(Config.dataset, 'test_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys, is_volatile=True)
+    dev_rank_batcher = StreamBatcher(Config.dataset, 'dev_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys)
+    test_rank_batcher = StreamBatcher(Config.dataset, 'test_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys)
 
 
     if Config.model_name is None:
@@ -163,17 +163,18 @@ def main():
             loss.backward()
             opt.step()
 
-            train_batcher.state.loss = loss
+            train_batcher.state.loss = loss.cpu()
 
 
         print('saving to {0}'.format(model_path))
         torch.save(model.state_dict(), model_path)
 
         model.eval()
-        ranking_and_hits(model, dev_rank_batcher, vocab, 'dev_evaluation')
-        if epoch % 3 == 0:
-            if epoch > 0:
-                ranking_and_hits(model, test_rank_batcher, vocab, 'test_evaluation')
+        with torch.no_grad():
+            ranking_and_hits(model, dev_rank_batcher, vocab, 'dev_evaluation')
+            if epoch % 3 == 0:
+                if epoch > 0:
+                    ranking_and_hits(model, test_rank_batcher, vocab, 'test_evaluation')
 
 
 if __name__ == '__main__':
