@@ -110,7 +110,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py model ConvE input_drop 0.2 hidden_drop 0.3
 For the reverse model, you can run the provided file with the name of the dataset name and a threshold probability:
 
 ```
-python reverse_rule.py WN18RR 0.9
+python inverse_model.py WN18RR 0.9
 ```
 
 ### Adding new datasets
