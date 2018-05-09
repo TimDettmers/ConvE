@@ -31,10 +31,10 @@ class Complex(torch.nn.Module):
 
     def forward(self, e1, rel):
 
-        e1_embedded_real = self.inp_drop(self.emb_e_real(e1)).squeeze()
-        rel_embedded_real = self.inp_drop(self.emb_rel_real(rel)).squeeze()
-        e1_embedded_img = self.inp_drop(self.emb_e_img(e1)).squeeze()
-        rel_embedded_img = self.inp_drop(self.emb_rel_img(rel)).squeeze()
+        e1_embedded_real = self.emb_e_real(e1).squeeze()
+        rel_embedded_real = self.emb_rel_real(rel).squeeze()
+        e1_embedded_img =  self.emb_e_img(e1).squeeze()
+        rel_embedded_img = self.emb_rel_img(rel).squeeze()
 
         e1_embedded_real = self.inp_drop(e1_embedded_real)
         rel_embedded_real = self.inp_drop(rel_embedded_real)
