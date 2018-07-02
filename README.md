@@ -145,6 +145,10 @@ If you found this codebase or our work useful please cite us:
 	Title = {Convolutional 2D Knowledge Graph Embeddings},
 	Url = {https://arxiv.org/abs/1707.01476},
 	Year = {2018},
-  Month = {February}
+        pages  = {1811--1818},
+  	Month = {February}
 }
+
+
+
 ```
