@@ -4,7 +4,6 @@ import json
 
 import argparse
 import datetime
-import requests
 import json
 import urllib
 import pickle
