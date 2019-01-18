@@ -23,12 +23,9 @@ from spodernet.preprocessing.pipeline import Pipeline
 from spodernet.preprocessing.processors import TargetIdx2MultiTarget
 from spodernet.hooks import LossHook, ETAHook
 from spodernet.utils.util import Timer
-from spodernet.utils.cuda_utils import CUDATimer
-from spodernet.utils.cuda_utils import CUDATimer
 from spodernet.preprocessing.processors import TargetIdx2MultiTarget
 np.set_printoptions(precision=3)
 
-timer = CUDATimer()
 cudnn.benchmark = True
 
 # parse console parameters and set global variables
