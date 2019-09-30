@@ -124,7 +124,7 @@ You can easily write your own knowledge graph model by extending the barebone mo
 ### Quirks
 
 There are some quirks of this framework.
-1. If you use a different embedding size, the ConvE concatenation size cannot be determined automatically and you have to set it yourself in line 106/107. Also the first dimension of the projection layer will change. You will need to comment out the print function (line 118) to get the needed dimension, and adjust the size of the fully connected layer in line 98.
+1. If you use a different embedding size, the ConvE concatenation size cannot be determined automatically and you have to set it yourself in line [103/104](https://github.com/TimDettmers/ConvE/blob/master/model.py#L103). Also the first dimension of the projection layer will change. You will need to comment out the print function ([line 115](https://github.com/TimDettmers/ConvE/blob/master/model.py#L115)) to get the needed dimension, and adjust the size of the fully connected layer in [line 95](https://github.com/TimDettmers/ConvE/blob/master/model.py#L95).
 2. The model currently ignores data that does not fit into the specified batch size, for example if your batch size is 100 and your test data is 220, then 20 samples will be ignored. This is designed in that way to improve performance on small datasets. To test on the full test-data you can save the model checkpoint, load the model (with the `load=True` variable) and then evaluate with a batch size that fits the test data (for 220 you could use a batch size of 110). Another solution is to just use a fitting batch size from the start, that is, you could train with a batch size of 110.
 
 ### Issues
