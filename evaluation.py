@@ -2,7 +2,6 @@ import torch
 import numpy as np
 import datetime
 
-from spodernet.utils.global_config import Config
 from spodernet.utils.logger import Logger
 from torch.autograd import Variable
 from sklearn import metrics
@@ -38,7 +37,7 @@ def ranking_and_hits(model, dev_rank_batcher, vocab, name):
         pred1, pred2 = pred1.data, pred2.data
         e1, e2 = e1.data, e2.data
         e2_multi1, e2_multi2 = e2_multi1.data, e2_multi2.data
-        for i in range(Config.batch_size):
+        for i in range(e1.shape[0]):
             # these filters contain ALL labels
             filter1 = e2_multi1[i].long()
             filter2 = e2_multi2[i].long()
@@ -62,7 +61,7 @@ def ranking_and_hits(model, dev_rank_batcher, vocab, name):
 
         argsort1 = argsort1.cpu().numpy()
         argsort2 = argsort2.cpu().numpy()
-        for i in range(Config.batch_size):
+        for i in range(e1.shape[0]):
             # find the rank of the target entities
             rank1 = np.where(argsort1[i]==e2[i, 0].item())[0][0]
             rank2 = np.where(argsort2[i]==e1[i, 0].item())[0][0]

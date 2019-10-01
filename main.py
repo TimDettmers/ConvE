@@ -24,26 +24,12 @@ from spodernet.preprocessing.processors import TargetIdx2MultiTarget
 from spodernet.hooks import LossHook, ETAHook
 from spodernet.utils.util import Timer
 from spodernet.preprocessing.processors import TargetIdx2MultiTarget
+import argparse
+
+
 np.set_printoptions(precision=3)
 
 cudnn.benchmark = True
-
-# parse console parameters and set global variables
-Config.backend = Backends.TORCH
-Config.parse_argv(sys.argv)
-
-Config.cuda = True
-Config.embedding_dim = 200
-#Logger.GLOBAL_LOG_LEVEL = LogLevel.DEBUG
-
-
-#model_name = 'DistMult_{0}_{1}'.format(Config.input_dropout, Config.dropout)
-model_name = '{2}_{0}_{1}'.format(Config.input_dropout, Config.dropout, Config.model_name)
-epochs = 1000
-load = False
-if Config.dataset is None:
-    Config.dataset = 'FB15k-237'
-model_path = 'saved_models/{0}_{1}.model'.format(Config.dataset, model_name)
 
 
 ''' Preprocess knowledge graph using spodernet. '''
@@ -67,7 +53,7 @@ def preprocess(dataset_name, delete_data=False):
 
     # process full vocabulary and save it to disk
     d.set_path(full_path)
-    p = Pipeline(Config.dataset, delete_data, keys=input_keys, skip_transformation=True)
+    p = Pipeline(args.data, delete_data, keys=input_keys, skip_transformation=True)
     p.add_sent_processor(ToLower())
     p.add_sent_processor(CustomTokenizer(lambda x: x.split(' ')),keys=['e2_multi1', 'e2_multi2'])
     p.add_token_processor(AddToVocab())
@@ -87,43 +73,42 @@ def preprocess(dataset_name, delete_data=False):
         p.execute(d)
 
 
-def main():
-    if Config.process: preprocess(Config.dataset, delete_data=True)
+def main(args, model_path):
+    if args.preprocess: preprocess(args.data, delete_data=True)
     input_keys = ['e1', 'rel', 'rel_eval', 'e2', 'e2_multi1', 'e2_multi2']
-    p = Pipeline(Config.dataset, keys=input_keys)
+    p = Pipeline(args.data, keys=input_keys)
     p.load_vocabs()
     vocab = p.state['vocab']
 
     num_entities = vocab['e1'].num_token
 
-    train_batcher = StreamBatcher(Config.dataset, 'train', Config.batch_size, randomize=True, keys=input_keys)
-    dev_rank_batcher = StreamBatcher(Config.dataset, 'dev_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys)
-    test_rank_batcher = StreamBatcher(Config.dataset, 'test_ranking', Config.batch_size, randomize=False, loader_threads=4, keys=input_keys)
+    train_batcher = StreamBatcher(args.data, 'train', args.batch_size, randomize=True, keys=input_keys, loader_threads=args.loader_threads)
+    dev_rank_batcher = StreamBatcher(args.data, 'dev_ranking', args.test_batch_size, randomize=False, loader_threads=args.loader_threads, keys=input_keys)
+    test_rank_batcher = StreamBatcher(args.data, 'test_ranking', args.test_batch_size, randomize=False, loader_threads=args.loader_threads, keys=input_keys)
 
 
-    if Config.model_name is None:
-        model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
-    elif Config.model_name == 'ConvE':
-        model = ConvE(vocab['e1'].num_token, vocab['rel'].num_token)
-    elif Config.model_name == 'DistMult':
-        model = DistMult(vocab['e1'].num_token, vocab['rel'].num_token)
-    elif Config.model_name == 'ComplEx':
-        model = Complex(vocab['e1'].num_token, vocab['rel'].num_token)
+    if args.model is None:
+        model = ConvE(args, vocab['e1'].num_token, vocab['rel'].num_token)
+    elif args.model == 'conve':
+        model = ConvE(args, vocab['e1'].num_token, vocab['rel'].num_token)
+    elif args.model == 'distmult':
+        model = DistMult(args, vocab['e1'].num_token, vocab['rel'].num_token)
+    elif args.model == 'complex':
+        model = Complex(args, vocab['e1'].num_token, vocab['rel'].num_token)
     else:
-        log.info('Unknown model: {0}', Config.model_name)
+        log.info('Unknown model: {0}', args.model)
         raise Exception("Unknown model!")
 
     train_batcher.at_batch_prepared_observers.insert(1,TargetIdx2MultiTarget(num_entities, 'e2_multi1', 'e2_multi1_binary'))
 
 
-    eta = ETAHook('train', print_every_x_batches=100)
+    eta = ETAHook('train', print_every_x_batches=args.log_interval)
     train_batcher.subscribe_to_events(eta)
     train_batcher.subscribe_to_start_of_epoch_event(eta)
-    train_batcher.subscribe_to_events(LossHook('train', print_every_x_batches=100))
+    train_batcher.subscribe_to_events(LossHook('train', print_every_x_batches=args.log_interval))
 
-    if Config.cuda:
-        model.cuda()
-    if load:
+    model.cuda()
+    if args.resume:
         model_params = torch.load(model_path)
         print(model)
         total_param_size = []
@@ -144,8 +129,8 @@ def main():
     print(params)
     print(np.sum(params))
 
-    opt = torch.optim.Adam(model.parameters(), lr=Config.learning_rate, weight_decay=Config.L2)
-    for epoch in range(epochs):
+    opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.l2)
+    for epoch in range(args.epochs):
         model.train()
         for i, str2var in enumerate(train_batcher):
             opt.zero_grad()
@@ -153,7 +138,7 @@ def main():
             rel = str2var['rel']
             e2_multi = str2var['e2_multi1_binary'].float()
             # label smoothing
-            e2_multi = ((1.0-Config.label_smoothing_epsilon)*e2_multi) + (1.0/e2_multi.size(1))
+            e2_multi = ((1.0-args.label_smoothing)*e2_multi) + (1.0/e2_multi.size(1))
 
             pred = model.forward(e1, rel)
             loss = model.loss(pred, e2_multi)
@@ -168,11 +153,50 @@ def main():
 
         model.eval()
         with torch.no_grad():
-            ranking_and_hits(model, dev_rank_batcher, vocab, 'dev_evaluation')
-            if epoch % 3 == 0:
+            if epoch % 5 == 0 and epoch > 0:
+                ranking_and_hits(model, dev_rank_batcher, vocab, 'dev_evaluation')
+            if epoch % 5 == 0:
                 if epoch > 0:
                     ranking_and_hits(model, test_rank_batcher, vocab, 'test_evaluation')
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Link prediction for knowledge graphs')
+    parser.add_argument('--batch-size', type=int, default=128, help='input batch size for training (default: 128)')
+    parser.add_argument('--test-batch-size', type=int, default=128, help='input batch size for testing/validation (default: 128)')
+    parser.add_argument('--epochs', type=int, default=1000, help='number of epochs to train (default: 1000)')
+    parser.add_argument('--lr', type=float, default=0.003, help='learning rate (default: 0.003)')
+    parser.add_argument('--seed', type=int, default=17, metavar='S', help='random seed (default: 17)')
+    parser.add_argument('--log-interval', type=int, default=100, help='how many batches to wait before logging training status')
+    parser.add_argument('--data', type=str, default='FB15k-237', help='Dataset to use: {FB15k-237, YAGO3-10, WN18RR, umls, nations, kinship}, default: FB15k-237')
+    parser.add_argument('--l2', type=float, default=0.0, help='Weight decay value to use in the optimizer. Default: 0.0')
+    parser.add_argument('--model', type=str, default='conve', help='Choose from: {conve, distmult, complex}')
+    parser.add_argument('--embedding-dim', type=int, default=200, help='The embedding dimension (1D). Default: 200')
+    parser.add_argument('--embedding-shape1', type=int, default=20, help='The first dimension of the reshaped 2D embedding. The second dimension is infered. Default: 20')
+    parser.add_argument('--hidden-drop', type=float, default=0.3, help='Dropout for the hidden layer. Default: 0.3.')
+    parser.add_argument('--input-drop', type=float, default=0.2, help='Dropout for the input embeddings. Default: 0.2.')
+    parser.add_argument('--feat-drop', type=float, default=0.2, help='Dropout for the convolutional features. Default: 0.2.')
+    parser.add_argument('--lr-decay', type=float, default=0.995, help='Decay the learning rate by this factor every epoch. Default: 0.995')
+    parser.add_argument('--loader-threads', type=int, default=4, help='How many loader threads to use for the batch loaders. Default: 4')
+    parser.add_argument('--preprocess', action='store_true', help='Preprocess the dataset. Needs to be executed only once. Default: 4')
+    parser.add_argument('--resume', action='store_true', help='Resume a model.')
+    parser.add_argument('--use-bias', action='store_true', help='Use a bias in the convolutional layer. Default: True')
+    parser.add_argument('--label-smoothing', type=float, default=0.1, help='Label smoothing value to use. Default: 0.1')
+    parser.add_argument('--hidden-size', type=int, default=9728, help='The side of the hidden layer. The required size changes with the size of the embeddings. Default: 9728 (embedding size 200).')
+
+    args = parser.parse_args()
+
+
+
+    # parse console parameters and set global variables
+    Config.backend = 'pytorch'
+    Config.cuda = True
+    Config.embedding_dim = args.embedding_dim
+    #Logger.GLOBAL_LOG_LEVEL = LogLevel.DEBUG
+
+
+    model_name = '{2}_{0}_{1}'.format(args.input_drop, args.hidden_drop, args.model)
+    model_path = 'saved_models/{0}_{1}.model'.format(args.data, model_name)
+
+    torch.manual_seed(args.seed)
+    main(args, model_path)
