@@ -54,7 +54,7 @@ This repo supports Linux and Python installation via Anaconda.
 Parameters need to be specified by white-space tuples for example:
 ```
 CUDA_VISIBLE_DEVICES=0 python main.py --model conve --data FB15k-237 \
-                                      --input-drop 0.2 --hidden-drop 0.3 --feat-drop 0.2 \
+                                      --input-drop 0.2 --hidden-drop 0.5 --feat-drop 0.2 \
                                       --lr 0.003 --preprocess
 ```
 will run a ConvE model on FB15k-237.

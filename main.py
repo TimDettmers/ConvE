@@ -6,6 +6,7 @@ import argparse
 import sys
 import os
 import math
+import time
 
 from os.path import join
 import torch.backends.cudnn as cudnn
@@ -138,7 +139,8 @@ def main(args, model_path):
             rel = str2var['rel']
             e2_multi = str2var['e2_multi1_binary'].float()
             # label smoothing
-            e2_multi = ((1.0-args.label_smoothing)*e2_multi) + (1.0/e2_multi.size(1))
+            if args.label_smoothing > 0.0:
+                e2_multi = ((1.0-args.label_smoothing)*e2_multi) + (args.label_smoothing/e2_multi.size(1))
 
             pred = model.forward(e1, rel)
             loss = model.loss(pred, e2_multi)
@@ -185,7 +187,9 @@ if __name__ == '__main__':
     parser.add_argument('--hidden-size', type=int, default=9728, help='The side of the hidden layer. The required size changes with the size of the embeddings. Default: 9728 (embedding size 200).')
 
     args = parser.parse_args()
+    print(args)
 
+    time.sleep(np.random.randint(5, 25))
 
 
     # parse console parameters and set global variables
